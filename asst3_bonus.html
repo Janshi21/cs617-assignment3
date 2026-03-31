@@ -8,6 +8,7 @@
 
 <body style="font-family: Arial; padding: 20px;">
 
+```
 <h1>Boston Crime Data Story (Linked Charts)</h1>
 
 <p>
@@ -57,7 +58,9 @@
             let filtered = offenseData.filter(o => o.district === district);
 
             if (selectedYear !== null) {
-                filtered = filtered.filter(o => new Date(o.occurred_on_date).getFullYear().toString() === selectedYear);
+                filtered = filtered.filter(o =>
+                    new Date(o.OCCURRED_ON_DATE).getFullYear().toString() === selectedYear
+                );
             }
 
             let countsMap = {};
@@ -84,9 +87,7 @@
                 margin: { b: 150 }
             });
 
-            let chartDiv = document.getElementById('chart1');
-
-            chartDiv.on('plotly_click', function(eventData) {
+            document.getElementById('chart1').on('plotly_click', function(eventData) {
                 let clickedYear = eventData.points[0].x;
                 drawCharts(district, clickedYear);
             });
@@ -100,7 +101,8 @@
 
     });
 </script>
-
+```
 
 </body>
 </html>
+
