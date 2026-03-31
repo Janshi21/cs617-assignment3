@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Boston Crime Data Story (Linked Charts)</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body style="font-family: Arial; padding: 20px;">
+
+<h1>Boston Crime Data Story (Linked Charts)</h1>
+
+<p>
+    Click on a point in the trend chart to update crime types automatically.
+</p>
+
+<select id="districtSelect"></select>
+
+<div id="chart1" style="width:100%; height:400px;"></div>
+<div id="chart2" style="width:100%; height:500px;"></div>
+
+<script>
+    fetch('boston_crime_data.json')
+    .then(res => res.json())
+    .then(data => {
+
+        let districtYear = data.district_year;
+        let offenseData = data.offenses;
+
+        let districts = Object.keys(districtYear);
+        let select = document.getElementById("districtSelect");
+
+        districts.forEach(d => {
+            let opt = document.createElement("option");
+            opt.value = d;
+            opt.text = d;
+            select.appendChild(opt);
+        });
+
+        function drawCharts(district, selectedYear=null) {
+
+            let years = Object.keys(districtYear[district]).sort();
+            let counts = years.map(y => districtYear[district][y]);
+
+            Plotly.newPlot('chart1', [{
+                x: years,
+                y: counts,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: 'red', width: 3 }
+            }], {
+                title: `Shootings Trend in District ${district}`,
+                xaxis: { title: "Year", tickmode: "array", tickvals: years },
+                yaxis: { title: "Number of Shootings" }
+            });
+
+            let filtered = offenseData.filter(o => o.district === district);
+
+            if (selectedYear !== null) {
+                filtered = filtered.filter(o => new Date(o.occurred_on_date).getFullYear().toString() === selectedYear);
+            }
+
+            let countsMap = {};
+            filtered.forEach(o => {
+                countsMap[o.offense] = (countsMap[o.offense] || 0) + 1;
+            });
+
+            let sorted = Object.entries(countsMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 7);
+
+            let x = sorted.map(d => d[0]);
+            let y = sorted.map(d => d[1]);
+
+            Plotly.newPlot('chart2', [{
+                x: x,
+                y: y,
+                type: 'bar',
+                marker: { color: 'orange' }
+            }], {
+                title: selectedYear ? `Crime Types in ${selectedYear} (District ${district})` : `Most Common Crime Types in District ${district}`,
+                xaxis: { title: "Crime Type", tickangle: -45, automargin: true },
+                yaxis: { title: "Count" },
+                margin: { b: 150 }
+            });
+
+            let chartDiv = document.getElementById('chart1');
+
+            chartDiv.on('plotly_click', function(eventData) {
+                let clickedYear = eventData.points[0].x;
+                drawCharts(district, clickedYear);
+            });
+        }
+
+        drawCharts(districts[0]);
+
+        select.addEventListener("change", function() {
+            drawCharts(this.value);
+        });
+
+    });
+</script>
+
+
+</body>
+</html>
