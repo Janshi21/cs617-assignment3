@@ -8,23 +8,19 @@
 
 <body style="font-family: Arial; padding: 20px;">
 
-```
+    
 <h1>Boston Crime Data Story</h1>
 
 <p>
     This analysis explores shooting trends across Boston districts from 2023 to 2026.
-    We observe a clear decline in shooting incidents over time.
-    However, crime type analysis reveals that property-related and assault crimes still dominate.
+    We observe a decline in shootings over time, while crime type analysis shows that property and assault-related incidents remain common.
 </p>
-
-<h2>Top 5 Districts Comparison</h2>
-<div id="overviewChart" style="width:100%; height:500px;"></div>
 
 <p>Select a district to explore trends and crime types:</p>
 <select id="districtSelect"></select>
 
 <div id="chart1" style="width:100%; height:400px;"></div>
-<div id="chart2" style="width:100%; height:400px;"></div>
+<div id="chart2" style="width:100%; height:500px;"></div>
 
 <script>
     fetch('boston_crime_data.json')
@@ -33,33 +29,6 @@
 
         let districtYear = data.district_year;
         let offenseData = data.offenses;
-
-        let totals = Object.entries(districtYear).map(([d, years]) => {
-            let sum = Object.values(years).reduce((a, b) => a + b, 0);
-            return { district: d, total: sum };
-        });
-
-        totals.sort((a, b) => b.total - a.total);
-        let top5 = totals.slice(0, 5).map(d => d.district);
-
-        let overviewTraces = top5.map(d => {
-            let years = Object.keys(districtYear[d]).sort();
-            let counts = years.map(y => districtYear[d][y]);
-
-            return {
-                x: years,
-                y: counts,
-                mode: 'lines+markers',
-                name: d,
-                line: { width: 3 }
-            };
-        });
-
-        Plotly.newPlot('overviewChart', overviewTraces, {
-            title: "Top 5 Districts: Shooting Trends (2023–2026)",
-            xaxis: { title: "Year" },
-            yaxis: { title: "Shootings" }
-        });
 
         let districts = Object.keys(districtYear);
         let select = document.getElementById("districtSelect");
@@ -80,7 +49,8 @@
                 x: years,
                 y: counts,
                 type: 'scatter',
-                mode: 'lines+markers'
+                mode: 'lines+markers',
+                line: { color: 'red', width: 3 }
             }], {
                 title: `Declining Shooting Trend in District ${district}`,
                 xaxis: {
@@ -100,7 +70,7 @@
 
             let sorted = Object.entries(countsMap)
                 .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
+                .slice(0, 7);
 
             let x = sorted.map(d => d[0]);
             let y = sorted.map(d => d[1]);
@@ -108,11 +78,21 @@
             Plotly.newPlot('chart2', [{
                 x: x,
                 y: y,
-                type: 'bar'
+                type: 'bar',
+                marker: { color: 'orange' }
             }], {
                 title: `Most Common Crime Types in District ${district}`,
-                xaxis: { title: "Crime Type", tickangle: -30 },
-                yaxis: { title: "Count" }
+                xaxis: {
+                    title: "Crime Type",
+                    tickangle: -45,
+                    automargin: true
+                },
+                yaxis: {
+                    title: "Count"
+                },
+                margin: {
+                    b: 150
+                }
             });
         }
 
@@ -124,7 +104,8 @@
 
     });
 </script>
-```
+
 
 </body>
 </html>
+
