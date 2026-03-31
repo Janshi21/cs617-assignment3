@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Boston Crime Data Story</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body style="font-family: Arial; padding: 20px;">
+
+<h1>Boston Shooting Analysis: District Trends & Crime Types</h1>
+
+<p>Select a district to explore trends and crime types:</p>
+
+<select id="districtSelect"></select>
+
+<div id="chart1" style="width:100%;height:400px;"></div>
+<div id="chart2" style="width:100%;height:400px;"></div>
+
+<script>
+fetch('boston_crime_data.json')
+.then(res => res.json())
+.then(data => {
+
+    let districtYear = data.district_year;
+    let offenseData = data.offenses;
+
+    let districts = Object.keys(districtYear);
+    let select = document.getElementById("districtSelect");
+
+    // Populate dropdown
+    districts.forEach(d => {
+        let opt = document.createElement("option");
+        opt.value = d;
+        opt.text = d;
+        select.appendChild(opt);
+    });
+
+    function updateCharts(district) {
+
+        // ===== Chart 1 (Trend) =====
+        let years = Object.keys(districtYear[district]).sort();
+        let counts = years.map(y => districtYear[district][y]);
+
+        Plotly.newPlot('chart1', [{
+            x: years,
+            y: counts,
+            type: 'scatter',
+            mode: 'lines+markers'
+        }], {
+            title: `Shootings Over Time in District ${district}`,
+            xaxis: { title: "Year" },
+            yaxis: { title: "Number of Shootings" }
+        });
+
+        // ===== Chart 2 (Top Crimes) =====
+        let countsMap = {};
+
+        offenseData.forEach(item => {
+            if (item.district === district) {
+                countsMap[item.offense] = (countsMap[item.offense] || 0) + 1;
+            }
+        });
+
+        // Convert & sort
+        let sorted = Object.entries(countsMap)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10); // TOP 10
+
+        let x = sorted.map(d => d[0]);
+        let y = sorted.map(d => d[1]);
+
+        Plotly.newPlot('chart2', [{
+            x: x,
+            y: y,
+            type: 'bar'
+        }], {
+            title: `Top Crime Types in District ${district}`,
+            xaxis: { title: "Crime Type" },
+            yaxis: { title: "Count" }
+        });
+    }
+
+    // Default load
+    updateCharts(districts[0]);
+
+    // Dropdown interaction
+    select.addEventListener("change", function() {
+        updateCharts(this.value);
+    });
+
+});
+</script>
+
+</body>
+</html>
