@@ -55,18 +55,19 @@
                 yaxis: { title: "Number of Shootings" }
             });
 
-            let filtered = offenseData.filter(o => o.district === district);
+            let filtered = offenseData.filter(o => o.DISTRICT === district);
 
             if (selectedYear !== null) {
-                filtered = filtered.filter(o =>
-                    new Date(o.OCCURRED_ON_DATE).getFullYear().toString() === selectedYear
-                );
-            }
+            filtered = filtered.filter(o =>
+            new Date(o.OCCURRED_ON_DATE).getFullYear().toString() === selectedYear
+    );
+}
 
             let countsMap = {};
             filtered.forEach(o => {
-                countsMap[o.offense] = (countsMap[o.offense] || 0) + 1;
-            });
+            let type = o.OFFENSE_DESCRIPTION || o.OFFENSE_CODE_GROUP;
+            countsMap[type] = (countsMap[type] || 0) + 1;
+});
 
             let sorted = Object.entries(countsMap)
                 .sort((a, b) => b[1] - a[1])
